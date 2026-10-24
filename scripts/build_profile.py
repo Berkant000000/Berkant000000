@@ -209,66 +209,73 @@ def chart_activity(days: list[dict]) -> None:
     plt.close(fig)
 
 
-# ---------- plan usage (Settings > Usage) ----------
+# ---------- tokens per project (Claude Code > project settings > Usage) ----------
 
-PLAN = ROOT / "data" / "plan_usage.json"
+PROJECTS = ROOT / "data" / "projects_usage.json"
+PROJECT_COLORS = ["#7c5cff", "#ff4fd8", "#22d3ee", "#34d399", "#ffd166", "#f97316"]
 
 
-def load_plan() -> dict | None:
-    if not PLAN.exists():
+def load_projects() -> dict | None:
+    if not PROJECTS.exists():
         return None
-    raw = json.loads(PLAN.read_text(encoding="utf-8"))
-    snaps = sorted(raw.get("snapshots") or [], key=lambda s: s["at"])
-    if not snaps:
+    raw = json.loads(PROJECTS.read_text(encoding="utf-8"))
+    if not raw.get("projects"):
         return None
-    raw["snapshots"] = snaps
+    pr = raw["pricing"]
+    for p in raw["projects"]:
+        p["cost"] = (p["input"] * pr["input"] + p["output"] * pr["output"]
+                     + p["cache_write"] * pr["cache_write"] + p["cache_read"] * pr["cache_read"]) / 1e6
+    raw["projects"].sort(key=lambda p: p["total"], reverse=True)
     return raw
 
 
-def chart_plan(plan: dict) -> None:
-    snaps = plan["snapshots"]
-    last = snaps[-1]
-    has_hist = len(snaps) >= 2
-    fig = plt.figure(figsize=(10, 4.4 if has_hist else 2.6), dpi=150)
+def chart_projects(data: dict) -> None:
+    projects = data["projects"]
+    fig, ax = plt.subplots(figsize=(10, 0.75 * len(projects) + 1.4), dpi=150)
     fig.patch.set_facecolor(BG)
-    gs = fig.add_gridspec(2 if has_hist else 1, 1, height_ratios=[1, 1.3] if has_hist else [1])
-
-    ax = fig.add_subplot(gs[0])
     ax.set_facecolor(BG)
-    rows = [("Settimana (tutti i modelli)", last["weekly"], "#7c5cff"),
-            ("Settimana (Fable)", last["fable"], "#ff4fd8"),
-            ("Sessione corrente", last["session"], "#22d3ee")]
-    for i, (label, val, color) in enumerate(rows):
-        y = len(rows) - 1 - i
-        ax.barh(y, 100, color=GRID, height=0.42)
-        ax.barh(y, val, color=color, height=0.42)
-        ax.text(-2, y, label, ha="right", va="center", color=TEXT, fontsize=10)
-        ax.text(101.5, y, f"{val}%", ha="left", va="center", color=TEXT, fontsize=10, fontweight="bold")
-    ax.set_xlim(0, 100)
-    ax.set_ylim(-0.6, len(rows) - 0.4)
+    top = max(p["total"] for p in projects)
+    for i, p in enumerate(projects):
+        y = len(projects) - 1 - i
+        color = PROJECT_COLORS[i % len(PROJECT_COLORS)]
+        ax.barh(y, top, color=GRID, height=0.5)
+        ax.barh(y, p["total"], color=color, height=0.5)
+        ax.text(-top * 0.02, y, p["name"], ha="right", va="center", color=TEXT, fontsize=11)
+        ax.text(top * 1.02, y, f"{human(p['total'])} token  ·  ${p['cost']:,.0f}",
+                ha="left", va="center", color=TEXT, fontsize=10.5, fontweight="bold")
+    total = sum(p["total"] for p in projects)
+    cost = sum(p["cost"] for p in projects)
+    ax.set_xlim(0, top)
+    ax.set_ylim(-0.7, len(projects) - 0.3)
     ax.axis("off")
-    ax.set_title(f"Limiti del piano · si azzera {last.get('weekly_reset', '')}", color=TEXT,
-                 fontsize=13, loc="left", pad=10, fontweight="bold", x=-0.38)
-
-    if has_hist:
-        ax2 = fig.add_subplot(gs[1])
-        style_axes(ax2)
-        times = [datetime.fromisoformat(s["at"]) for s in snaps]
-        ax2.plot(times, [s["weekly"] for s in snaps], color="#7c5cff", linewidth=2.2,
-                 marker="o", markersize=3, label="Settimana")
-        ax2.plot(times, [s["fable"] for s in snaps], color="#ff4fd8", linewidth=1.6,
-                 marker="o", markersize=2.5, label="Fable")
-        ax2.set_ylim(0, 100)
-        ax2.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:.0f}%"))
-        import matplotlib.dates as mdates
-        ax2.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m %Hh", tz=TZ))
-        leg = ax2.legend(loc="upper left", frameon=False, fontsize=8.5, ncol=2)
-        for t in leg.get_texts():
-            t.set_color(TEXT)
-
-    fig.subplots_adjust(left=0.3, right=0.94, top=0.86, bottom=0.12, hspace=0.35)
-    fig.savefig(ASSETS / "plan.png", facecolor=BG)
+    fig.suptitle(f"{human(total)} token con Claude Code  ·  ${cost:,.0f} a prezzi API Opus 5.5",
+                 color=TEXT, fontsize=14, fontweight="bold", x=0.03, ha="left")
+    fig.subplots_adjust(left=0.2, right=0.74, top=0.8, bottom=0.05)
+    fig.savefig(ASSETS / "projects.png", facecolor=BG)
     plt.close(fig)
+
+
+def projects_section(data: dict) -> list[str]:
+    chart_projects(data)
+    projects = data["projects"]
+    pr = data["pricing"]
+    keys = ("input", "output", "cache_write", "cache_read", "total", "cost")
+    tot = {k: sum(p[k] for p in projects) for k in keys}
+    rows = ["| Progetto | Token | Output | Scrittura cache | Lettura cache | Costo API |",
+            "|---|---:|---:|---:|---:|---:|"]
+    for p in projects:
+        rows.append(f"| {p['name']} | {human(p['total'])} | {human(p['output'])} | "
+                    f"{human(p['cache_write'])} | {human(p['cache_read'])} | ${p['cost']:,.0f} |")
+    rows.append(f"| **Totale** | **{human(tot['total'])}** | **{human(tot['output'])}** | "
+                f"**{human(tot['cache_write'])}** | **{human(tot['cache_read'])}** | **${tot['cost']:,.0f}** |")
+    when = datetime.fromisoformat(data["updated"]).strftime("%d/%m/%Y %H:%M")
+    return ["## ⚡ Token con Claude Code", "",
+            "![Token per progetto](assets/projects.png)", "", *rows, "",
+            f"<sub>Token dalla pagina Utilizzo di ogni progetto Claude Code (letti il {when}). "
+            f"Costo calcolato con i prezzi API di {pr['model']} per milione di token: input "
+            f"${pr['input']:g}, output ${pr['output']:g}, scrittura cache ${pr['cache_write']:g}, "
+            f"lettura cache ${pr['cache_read']:g}. È quanto costerebbero gli stessi token pagando "
+            "le API, non quanto pago con l'abbonamento Max.</sub>", ""]
 
 
 # ---------- README ----------
@@ -286,19 +293,12 @@ def build() -> None:
              "Sto costruendo **ClipFactory**, un servizio che trasforma video lunghi in clip "
              "verticali pronte per TikTok e Shorts, scritto quasi interamente con Claude Code.", ""]
 
-    plan = load_plan()
-    if plan:
-        chart_plan(plan)
-        last = plan["snapshots"][-1]
-        parts += [f"## 🔋 Piano Claude {plan.get('plan', 'Max')}", "",
-                  "![Utilizzo del piano](assets/plan.png)", "",
-                  f"Settimana: **{last['weekly']}%** usato (si azzera {last.get('weekly_reset', '—')}) · "
-                  f"Fable: **{last['fable']}%** · Sessione: **{last['session']}%** · "
-                  f"Letture: {len(plan['snapshots'])}", "",
-                  "<sub>Percentuali lette dalla pagina Utilizzo delle impostazioni di Claude.</sub>", ""]
+    projects = load_projects()
+    if projects:
+        parts += projects_section(projects)
 
-    parts += ["## ⚡ Token con Claude Code", ""]
     if usage:
+        parts += ["## 📅 Token per giorno", ""]
         chart_tokens(usage)
         today_key = datetime.now(TZ).strftime("%Y-%m-%d")
         month_key = today_key[:7]
@@ -332,9 +332,6 @@ def build() -> None:
             "costerebbero gli stessi token pagando le API, non quanto pago con l'abbonamento.</sub>",
             "",
         ]
-    else:
-        parts += ["_In attesa del primo conteggio: il grafico compare appena la sessione di "
-                  "Claude Code carica i dati di ccusage._", ""]
 
     if activity:
         chart_activity(activity)
