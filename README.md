@@ -4,7 +4,7 @@ Sto costruendo **ClipFactory**, un servizio che trasforma video lunghi in clip v
 
 ## ⚡ Token con Claude Code
 
-![Token per progetto](assets/projects.png)
+<p align="center"><img src="assets/hero.svg" alt="Token con Claude Code" width="100%"></p>
 
 | Progetto | Token | Output | Scrittura cache | Lettura cache | Costo API |
 |---|---:|---:|---:|---:|---:|
@@ -23,4 +23,4 @@ Sto costruendo **ClipFactory**, un servizio che trasforma video lunghi in clip v
 **37** commit · **+57.323** righe · **−3.860** righe in 3 giorni
 
 ---
-<sub>Aggiornato automaticamente il 24/10/2026 03:15 (ora italiana).</sub>
+<sub>Aggiornato automaticamente il 24/10/2026 03:20 (ora italiana).</sub>

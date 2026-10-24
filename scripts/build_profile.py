@@ -256,7 +256,8 @@ def chart_projects(data: dict) -> None:
 
 
 def projects_section(data: dict) -> list[str]:
-    chart_projects(data)
+    from hero_svg import build_hero
+    (ASSETS / "hero.svg").write_text(build_hero(data), encoding="utf-8")
     projects = data["projects"]
     pr = data["pricing"]
     keys = ("input", "output", "cache_write", "cache_read", "total", "cost")
@@ -270,7 +271,7 @@ def projects_section(data: dict) -> list[str]:
                 f"**{human(tot['cache_write'])}** | **{human(tot['cache_read'])}** | **${tot['cost']:,.0f}** |")
     when = datetime.fromisoformat(data["updated"]).strftime("%d/%m/%Y %H:%M")
     return ["## ⚡ Token con Claude Code", "",
-            "![Token per progetto](assets/projects.png)", "", *rows, "",
+            "<p align=\"center\"><img src=\"assets/hero.svg\" alt=\"Token con Claude Code\" width=\"100%\"></p>", "", *rows, "",
             f"<sub>Token dalla pagina Utilizzo di ogni progetto Claude Code (letti il {when}). "
             f"Costo calcolato con i prezzi API di {pr['model']} per milione di token: input "
             f"${pr['input']:g}, output ${pr['output']:g}, scrittura cache ${pr['cache_write']:g}, "
