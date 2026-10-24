@@ -1,16 +1,16 @@
-## Hi there 👋
+# Ciao 👋
 
-<!--
-**Berkant000000/Berkant000000** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+Sto costruendo **ClipFactory**, un servizio che trasforma video lunghi in clip verticali pronte per TikTok e Shorts, scritto quasi interamente con Claude Code.
 
-Here are some ideas to get you started:
+## ⚡ Token con Claude Code
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+_In attesa del primo conteggio: il grafico compare appena la sessione di Claude Code carica i dati di ccusage._
+
+## 🏭 ClipFactory in numeri
+
+![Attività ClipFactory](assets/activity.png)
+
+**37** commit · **+57.323** righe · **−3.860** righe in 3 giorni
+
+---
+<sub>Aggiornato automaticamente il 24/10/2026 03:02 (ora italiana).</sub>
