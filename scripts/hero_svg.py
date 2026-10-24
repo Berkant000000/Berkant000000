@@ -51,10 +51,11 @@ def build_hero(data: dict) -> str:
         segs.append(
             f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{color}" stroke-width="{sw}" '
             f'stroke-linecap="round" stroke-dasharray="{length:.1f} {circ:.1f}" '
-            f'stroke-dashoffset="{length:.1f}" transform="rotate({-90 + start * 360:.2f} {cx} {cy})" '
+            f'stroke-dashoffset="0" transform="rotate({-90 + start * 360:.2f} {cx} {cy})" '
             f'filter="url(#glow)">'
-            f'<animate attributeName="stroke-dashoffset" from="{length:.1f}" to="0" begin="{delay:.2f}s" '
-            f'dur="1.4s" fill="freeze" calcMode="spline" keySplines="0.2 0.8 0.2 1" keyTimes="0;1"/></circle>'
+            f'<animate attributeName="stroke-dashoffset" values="{length:.1f};{length:.1f};0" '
+            f'keyTimes="0;{delay / (delay + 1.4):.3f};1" dur="{delay + 1.4:.2f}s" calcMode="spline" '
+            f'keySplines="0 0 1 1;0.2 0.8 0.2 1"/></circle>'
         )
         start += frac
 
@@ -70,9 +71,10 @@ def build_hero(data: dict) -> str:
             f'<circle cx="62" cy="{y - 5}" r="5" fill="{color}"/>'
             f'<text x="76" y="{y}" class="row">{escape(p["name"])}</text>'
             f'<rect x="236" y="{y - 12}" width="240" height="10" rx="5" fill="#ffffff" fill-opacity=".06"/>'
-            f'<rect x="236" y="{y - 12}" width="0" height="10" rx="5" fill="{color}">'
-            f'<animate attributeName="width" from="0" to="{wbar:.1f}" begin="{1.0 + i * 0.15:.2f}s" dur="1.1s" '
-            f'fill="freeze" calcMode="spline" keySplines="0.2 0.8 0.2 1" keyTimes="0;1"/></rect>'
+            f'<rect x="236" y="{y - 12}" width="{wbar:.1f}" height="10" rx="5" fill="{color}">'
+            f'<animate attributeName="width" values="0;0;{wbar:.1f}" '
+            f'keyTimes="0;{(1.0 + i * 0.15) / (2.1 + i * 0.15):.3f};1" dur="{2.1 + i * 0.15:.2f}s" '
+            f'calcMode="spline" keySplines="0 0 1 1;0.2 0.8 0.2 1"/></rect>'
             f'<text x="490" y="{y}" class="val">{human(p["total"])}</text>'
             f'<text x="620" y="{y}" class="cost" text-anchor="end">{money(p["cost"])}</text></g>'
         )
@@ -128,7 +130,7 @@ def build_hero(data: dict) -> str:
   .money {{ font-weight: 800; font-size: 44px; fill: #ffd166; letter-spacing: -1px; }}
   .moneyl {{ font: 700 11px {MONO}; letter-spacing: 2px; fill: #b6b0d6; }}
   .note {{ font-size: 12px; fill: #6f7593; }}
-  .fade {{ opacity: 0; animation: up .8s cubic-bezier(.2,.8,.2,1) forwards; }}
+  .fade {{ animation: up .8s cubic-bezier(.2,.8,.2,1) both; }}
   .pulse {{ animation: pulse 2.4s ease-in-out infinite; transform-origin: 56px 52px; }}
   @keyframes up {{ from {{ opacity: 0; transform: translateY(10px); }} to {{ opacity: 1; transform: none; }} }}
   @keyframes pulse {{ 0%,100% {{ opacity: 1; }} 50% {{ opacity: .35; }} }}
