@@ -1,9 +1,0 @@
-{
-  "updated": "2026-10-24",
-  "source": "git log --no-merges on main and v1/* branches of ClipFactory, Europe/Rome dates",
-  "days": [
-    {"date": "2026-10-21", "commits": 13, "added": 19191, "removed": 234},
-    {"date": "2026-10-22", "commits": 2, "added": 1455, "removed": 378},
-    {"date": "2026-10-23", "commits": 22, "added": 36677, "removed": 3248}
-  ]
-}
