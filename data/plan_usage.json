@@ -1,0 +1,7 @@
+{
+  "plan": "Max (20x)",
+  "source": "claude.ai Impostazioni > Utilizzo",
+  "snapshots": [
+    {"at": "2026-10-24T03:08:00+02:00", "session": 42, "weekly": 58, "fable": 4, "weekly_reset": "mar 20:00"}
+  ]
+}
